@@ -1,6 +1,6 @@
 # go-expenseTracker
 
-Expense Tracker Rest API with multi-users capability. Each user will have his own expense records.
+[Expense Tracker Rest API](https://roadmap.sh/projects/expense-tracker-api) with multi-users capability. Each user will have his own expense records.
 
 Utilizing golang `net/http` for http server, `sqlc` and golang `sql` for database-related operation.
 
@@ -13,7 +13,7 @@ Utilizing golang `net/http` for http server, `sqlc` and golang `sql` for databas
 
 ## Getting Started
 
-Live Demo :
+> Live Demo : https://xpense.fly.biz.id/
 
 To run in local :
 
