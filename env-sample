@@ -1,0 +1,10 @@
+PORT=8080
+APP_ENV=local
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=go_expenseTracker
+DB_USERNAME=admin
+DB_PASSWORD=admin123
+DB_SCHEMA=public
+
+SECRET=tokensecret

@@ -1,0 +1,18 @@
+version: '2'
+sql:
+  - engine: 'postgresql'
+    queries: 'query.sql'
+    schema: 'schema.sql'
+    gen:
+      go:
+        package: 'sqlc'
+        out: 'internal/sqlc'
+        sql_package: 'database/sql'
+        overrides:
+          - db_type: 'pg_catalog.numeric'
+            go_type:
+              import: 'github.com/shopspring/decimal'
+              type: Decimal
+          - db_type: 'pg_catalog.interval'
+            go_type:
+              type: 'string'

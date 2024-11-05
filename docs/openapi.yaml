@@ -1,0 +1,359 @@
+openapi: '3.0.3'
+info:
+  title: Expense Tracker API
+  version: '1.0'
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: User
+  - name: Expense
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        username:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+    ExpenseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        desc:
+          nullable: true
+          type: string
+        category:
+          nullable: true
+          type: string
+        amount:
+          type: number
+    Expense:
+      type: object
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        category:
+          type: string
+        amount:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CustomTimeFilter:
+      description: custom time filter with "start" and "end" timestamp
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+    FixedTimeFilter:
+      description: fixed time filter
+      type: object
+      properties:
+        start:
+          type: string
+          enum:
+            - past_week
+            - past_month
+            - last_3_months
+
+  requestBodies:
+    Register:
+      description: 'request body for register'
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RegisterRequest'
+    Login:
+      description: 'request body for login'
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/LoginRequest'
+    Expense:
+      description: 'request body for POST/PUT expense'
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExpenseRequest'
+    TimeFilter:
+      description: 'request body for GET expenses with time filtering'
+      required: false
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: '#/components/schemas/FixedTimeFilter'
+              - $ref: '#/components/schemas/CustomTimeFilter'
+
+  securitySchemes:
+    JWT_Auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Register:
+      description: 'response: 200 for register'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                $ref: '#/components/schemas/User'
+    EmailExisted:
+      description: 'response: 409 (email already registered) for register'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: 'response: 400 (invalid request) for all'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: 'response: 500 (internal server error) for all'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Login:
+      description: 'response: 200 for login'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                $ref: '#/components/schemas/Token'
+    IncorrectCredential:
+      description: 'response: 401 (incorrect email or password) for login'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Expense:
+      description: 'response: 201 or 200 for expense'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                $ref: '#/components/schemas/Expense'
+    ExpenseList:
+      description: 'response: 200 for list expense'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Expense'
+    NotFound:
+      description: 'response: 404'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  examples:
+    Register:
+      value:
+        message: user added
+        data:
+          id: 3
+          email: someone@gmail.com
+          username: someone_cool
+    Login:
+      value:
+        message: logged in
+        data:
+          token: token123xyz
+    IncorrectPassword:
+      value:
+        message: incorrect password
+    IncorrectEmail:
+      value:
+        message: incorrect email
+    EmailExisted:
+      value:
+        message: email already registered, use another email
+    ServerError:
+      value:
+        message: internal server error
+    BadReqRegister:
+      value:
+        message: 'all field must be valid: email, password, username'
+    ExpenseCreated:
+      value:
+        message: expense added
+    BadReqExpense:
+      value:
+        message: 'these fields must not be empty: name, amount'
+
+paths:
+  /register:
+    post:
+      tags:
+        - User
+      description: 'register new user'
+      requestBody:
+        $ref: '#/components/requestBodies/Register'
+      responses:
+        '200':
+          $ref: '#/components/responses/Register'
+        '409':
+          $ref: '#/components/responses/EmailExisted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /login:
+    post:
+      tags:
+        - User
+      description: 'login with credential'
+      requestBody:
+        $ref: '#/components/requestBodies/Login'
+      responses:
+        '200':
+          $ref: '#/components/responses/Login'
+        '401':
+          $ref: '#/components/responses/IncorrectCredential'
+  /expenses:
+    post:
+      tags:
+        - Expense
+      description: 'create new expense entry'
+      security:
+        - JWT_Auth: []
+      requestBody:
+        $ref: '#/components/requestBodies/Expense'
+      responses:
+        '201':
+          $ref: '#/components/responses/Expense'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags:
+        - Expense
+      description: 'list expenses'
+      security:
+        - JWT_Auth: []
+      parameters:
+        - in: query
+          name: filterTime
+          schema:
+            type: string
+            enum: [fixed, custom]
+          required: false
+      requestBody:
+        $ref: '#/components/requestBodies/TimeFilter'
+      responses:
+        '200':
+          $ref: '#/components/responses/ExpenseList'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /expenses/{id}:
+    delete:
+      tags:
+        - Expense
+      description: 'delete entry by ID'
+      security:
+        - JWT_Auth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The expense ID
+      responses:
+        '200':
+          $ref: '#/components/responses/Expense'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Expense
+      description: 'update expense entry by ID'
+      security:
+        - JWT_Auth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            description: The expense ID
+      requestBody:
+        $ref: '#/components/requestBodies/Expense'
+      responses:
+        '200':
+          $ref: '#/components/responses/Expense'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
